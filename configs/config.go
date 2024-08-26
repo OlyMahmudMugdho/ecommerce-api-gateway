@@ -15,6 +15,6 @@ func (sc *ServiceConfig) GetHost(serviceName string) string {
 }
 
 var allServices = map[string]string{
-	"auth": "http://localhost:8082",
-	"cart": "http://localhost:8083",
+	"auth": "http://auth-app:8082",
+	"cart": "http://cart-app:8083",
 }
