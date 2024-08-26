@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -21,7 +20,7 @@ func NewServer(port string) *Server {
 }
 
 func (s *Server) Run() {
-	s.Router.HandleFunc("GET /", s.ProxyAuth())
+	s.Router.HandleFunc("/", s.ProxyAuth())
 	log.Printf("server is running on port %v \n", s.Port)
 	err := http.ListenAndServe(s.Port, s.Router)
 
@@ -31,7 +30,6 @@ func (s *Server) Run() {
 }
 
 func (s *Server) ProxyAuth() http.HandlerFunc {
-	fmt.Println("ok")
 	authUrl, _ := url.Parse("http://localhost:8082/")
 	proxy := &httputil.ReverseProxy{
 		Rewrite: func(pr *httputil.ProxyRequest) {
