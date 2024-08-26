@@ -1,10 +1,12 @@
 package server
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 )
 
 type Server struct {
@@ -20,8 +22,11 @@ func NewServer(port string) *Server {
 }
 
 func (s *Server) Run() {
-	s.Router.HandleFunc("/", s.ProxyAuth())
+
+	s.Router.HandleFunc("/", s.ProxyAuth)
+
 	log.Printf("server is running on port %v \n", s.Port)
+
 	err := http.ListenAndServe(s.Port, s.Router)
 
 	if err != nil {
@@ -29,8 +34,26 @@ func (s *Server) Run() {
 	}
 }
 
-func (s *Server) ProxyAuth() http.HandlerFunc {
-	authUrl, _ := url.Parse("http://localhost:8082/")
+func (s *Server) ProxyAuth(w http.ResponseWriter, r *http.Request) {
+	var host string
+
+	service, _ := strings.CutPrefix(r.URL.Path, "/")
+
+	switch service {
+	case "auth":
+		host = "http://localhost:8082/"
+	default:
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]any{
+			"error":   true,
+			"message": "requested service is not available",
+		})
+		return
+	}
+
+	authUrl, _ := url.Parse(host)
+
 	proxy := &httputil.ReverseProxy{
 		Rewrite: func(pr *httputil.ProxyRequest) {
 			pr.SetURL(authUrl)
@@ -38,7 +61,9 @@ func (s *Server) ProxyAuth() http.HandlerFunc {
 		},
 	}
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		proxy.ServeHTTP(w, r)
-	})
+	proxy.ServeHTTP(w, r)
+
+	// return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	proxy.ServeHTTP(w, r)
+	// })
 }
