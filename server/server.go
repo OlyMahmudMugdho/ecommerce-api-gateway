@@ -7,6 +7,8 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+
+	"github.com/OlyMahmudMugdho/ecommerce-api-gateway/configs"
 )
 
 type Server struct {
@@ -35,16 +37,13 @@ func (s *Server) Run() {
 }
 
 func (s *Server) ProxyAuth(w http.ResponseWriter, r *http.Request) {
-	var host string
 
-	service, _ := strings.CutPrefix(r.URL.Path, "/")
+	serviceName := strings.Split(r.URL.Path, "/")[1]
 
-	switch service {
-	case "auth":
-		host = "http://localhost:8082/"
-	case "cart":
-		host = "http://localhost:8083/"
-	default:
+	sConfig := configs.NewServiceConfig()
+	host := sConfig.GetHost(serviceName)
+
+	if host == "" {
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]any{
@@ -64,8 +63,4 @@ func (s *Server) ProxyAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	proxy.ServeHTTP(w, r)
-
-	// return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	// 	proxy.ServeHTTP(w, r)
-	// })
 }
