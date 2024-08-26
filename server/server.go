@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -39,10 +40,10 @@ func (s *Server) Run() {
 func (s *Server) ProxyAuth(w http.ResponseWriter, r *http.Request) {
 
 	serviceName := strings.Split(r.URL.Path, "/")[1]
-
+	fmt.Println(serviceName)
 	sConfig := configs.NewServiceConfig()
 	host := sConfig.GetHost(serviceName)
-
+	fmt.Println(host)
 	if host == "" {
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -59,6 +60,7 @@ func (s *Server) ProxyAuth(w http.ResponseWriter, r *http.Request) {
 		Rewrite: func(pr *httputil.ProxyRequest) {
 			pr.SetURL(authUrl)
 			pr.Out.Host = pr.In.Host
+			fmt.Println(pr.Out.URL)
 		},
 	}
 
