@@ -42,6 +42,8 @@ func (s *Server) ProxyAuth(w http.ResponseWriter, r *http.Request) {
 	switch service {
 	case "auth":
 		host = "http://localhost:8082/"
+	case "cart":
+		host = "http://localhost:8083/"
 	default:
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
